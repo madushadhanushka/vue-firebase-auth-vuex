@@ -21,10 +21,10 @@ new Vue({
   components: { App },
   created () {
     firebase.initializeApp({
-      apiKey: '',
-      authDomain: '',
-      databaseURL: '',
-      projectId: '',
+      apiKey: 'AIzaSyBekD4gc5Crnx2kVCxzgy3DjJM7kftIxPo',
+      authDomain: 'firstbot-a1ca0.firebaseapp.com',
+      databaseURL: 'https://cad_design.firebaseio.com',
+      projectId: 'firstbot-a1ca0',
       storageBucket: ''
     })
     firebase.auth().onAuthStateChanged((user) => {
