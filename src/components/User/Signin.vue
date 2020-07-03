@@ -60,23 +60,7 @@
                        </span>
                       </v-btn>
                     </div>
-                    <div class="text-xs-center">
-                      <v-btn round dark :disabled="loading" :loading="loading" @click.prevent="onSigninGithub">Login with Github
-                        <v-icon right dark>lock_open</v-icon>
-                        <span slot="loader" class="custom-loader">
-                        <v-icon light>cached</v-icon>
-                       </span>
-                      </v-btn>
-                    </div>
-                    <div class="text-xs-center">
-                      <v-btn round color="info" dark :disabled="loading" :loading="loading" @click.prevent="onSigninTwitter">Login with Twitter
-                        <v-icon right dark>lock_open</v-icon>
-                        <span slot="loader" class="custom-loader">
-                        <v-icon light>cached</v-icon>
-                       </span>
-                      </v-btn>
-                    </div>
-                    <br />
+
                     <div class="text-xs-center">
                       <v-btn round color="warning" dark :disabled="loading" :loading="loading" @click.prevent="onResetPassword">Reset Password By Email
                         <v-icon right dark>email</v-icon>
