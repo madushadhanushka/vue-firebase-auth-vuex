@@ -21,10 +21,10 @@ new Vue({
   components: { App },
   created () {
     firebase.initializeApp({
-      apiKey: 'AIzaSyBekD4gc5Crnx2kVCxzgy3DjJM7kftIxPo',
-      authDomain: 'firstbot-a1ca0.firebaseapp.com',
-      databaseURL: 'https://cad_design.firebaseio.com',
-      projectId: 'firstbot-a1ca0',
+      apiKey: 'AIzaSyDdoKZi7p839BWOKVvmBtFpnJ2UiqIm-2s',
+      authDomain: 'rocanvassing.firebaseapp.com',
+      databaseURL: 'https://rocanvassing.firebaseio.com',
+      projectId: 'rocanvassing',
       storageBucket: ''
     })
     firebase.auth().onAuthStateChanged((user) => {

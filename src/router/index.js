@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-const Home = () => import('@/components/Home')
 const Profile = () => import('@/components/User/Profile')
 const Signup = () => import('@/components/User/Signup')
 const Signin = () => import('@/components/User/Signin')
@@ -12,8 +11,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Home',
-      component: Home
+      name: 'Signin',
+      component: Signin
     },
     {
       path: '/profile',

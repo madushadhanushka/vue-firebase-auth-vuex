@@ -45,22 +45,13 @@
                     </v-btn>
                     </div>
                     <div class="text-xs-center">
-                      <v-btn round color="red" dark :disabled="loading" :loading="loading" @click.prevent="onSigninGoogle">Login with Google
+                      <v-btn round color="blue" dark :disabled="loading" :loading="loading" @click.prevent="onSigninGoogle">Login with Google
                         <v-icon right dark>lock_open</v-icon>
                         <span slot="loader" class="custom-loader">
                         <v-icon light>cached</v-icon>
                        </span>
                       </v-btn>
                     </div>
-                    <div class="text-xs-center">
-                      <v-btn round color="primary" dark :disabled="loading" :loading="loading" @click.prevent="onSigninFacebook">Login with Facebook
-                        <v-icon right dark>lock_open</v-icon>
-                        <span slot="loader" class="custom-loader">
-                        <v-icon light>cached</v-icon>
-                       </span>
-                      </v-btn>
-                    </div>
-
                     <div class="text-xs-center">
                       <v-btn round color="warning" dark :disabled="loading" :loading="loading" @click.prevent="onResetPassword">Reset Password By Email
                         <v-icon right dark>email</v-icon>
