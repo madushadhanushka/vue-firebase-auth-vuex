@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "firebase": "^7.15.5",
+    "papaparse": "^5.2.0",
     "vue": "^2.5.16",
     "vue-router": "^2.8.1",
     "vuetify": "^1.0.14",
