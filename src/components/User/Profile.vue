@@ -12,13 +12,23 @@
               >
             </v-avatar>
               <h5 class="headline mb-0"><b class="red--text">Email :</b> {{ user.email }}</h5>
+            <v-col class="d-flex" cols="12" sm="6">
+              <v-select
+                :items="['All', 'Kalutara', 'Beruwala', 'Panadura', 'Mathugama','Bandaragama', 'Horana', 'Ingiriya', 'Walallavita', 'Agalawatta', 'Bulathsinhala', 'Dodangoda', 'Madurawala', 'Palindanuwara', 'Millaniya']"
+                label="Select District Secretariat Division"
+                solo
+              ></v-select>
+            </v-col>
           </div>
         </v-card-text>
      </v-card>
     </v-flex>
   </v-layout>
-
-    <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+    <br/>
+    <div id="allVotePieChart" style="height: 600px; width: 100%;"/>
+    <br/>
+    <div id="allVoteCandidateBarChart" style="height: 600px; width: 100%;"/>
+    <br/>
     <div id="mapid" style="width: 100%; height: 80vh;"></div>
   </v-container>
 </template>
@@ -28,6 +38,9 @@
 
   var L = window.L
   var CanvasJS = window.CanvasJS
+  var slpfaColor = '#ff4F4F'
+  var unpColor = '#08ff06'
+  var otherColor = '#cbcbff'
   export default {
     computed: {
       user () {
@@ -35,71 +48,65 @@
       }
     },
     methods: {
+      sortDps: function sortDps (dps) {
+        do {
+          var swap = false
+          for (var i = 0; i < dps.length - 1; i++) {
+            if (dps[i].y > dps[i + 1].y) {
+              var temp = dps[i].y
+              dps[i].y = dps[i + 1].y
+              dps[i + 1].y = temp
+              swap = true
+            }
+          }
+        }
+        while (swap)
+      },
       fillMaps: async function fillMaps () {
         var db = firebase.firestore()
         const cityRef = db.collection('votes')
         var data = await cityRef.get()
-        var slpfa = []
-        var unp = []
-        var other = []
-        var voteCount
-        data.forEach(doc => {
-          if (doc.data().party === 'slpfa') {
-            voteCount = this.getCountForParty(slpfa, doc.data().votes[0])
-            if (voteCount === 0) {
-              slpfa.push({y: 1, label: doc.data().votes[0]})
+        var slpfaCount = 0
+        var unpCount = 0
+        var jvpCount = 0
+        var otherCount = 0
+        let voteCandidateData = []
+        for (var dataItem in data.docs) {
+          for (var vote in data.docs[dataItem].data().votes) {
+            var result = voteCandidateData.filter(obj => {
+              return obj.label === data.docs[dataItem].data().party + ' ' + data.docs[dataItem].data().votes[vote]
+            })
+            var voteCandIndex = -1
+            for (var i in voteCandidateData) {
+              if (voteCandidateData[i].label === data.docs[dataItem].data().party.toUpperCase() + ' ' + data.docs[dataItem].data().votes[vote]) {
+                voteCandIndex = i
+                break
+              }
             }
-          } else if (doc.data().party === 'unp') {
-            voteCount = this.getCountForParty(unp, doc.data().votes[0])
-            if (voteCount === 0) {
-              unp.push({y: 1, label: doc.data().votes[0]})
+            if (voteCandIndex === -1) {
+              var color = otherColor
+              if (data.docs[dataItem].data().party === 'slpfa') {
+                color = slpfaColor
+              } else if (data.docs[dataItem].data().party === 'unp') {
+                color = unpColor
+              }
+              voteCandidateData.push({'label': data.docs[dataItem].data().party.toUpperCase() + ' ' + data.docs[dataItem].data().votes[vote], 'y': 1, 'color': color})
+            } else {
+              voteCandidateData[voteCandIndex]['y']++
             }
-          } else {
-            voteCount = this.getCountForParty(other, doc.data().votes[0])
-            if (voteCount === 0) {
-              other.push({y: 1, label: doc.data().votes[0]})
-            }
+            console.log('result', result)
           }
-        })
-        console.log(slpfa, unp, other)
-        // Draw chart
-        var chart = new CanvasJS.Chart('chartContainer', {
-          animationEnabled: true,
-          theme: 'light2', // "light1", "dark1", "dark2"
-          title: {
-            text: 'Vote Percentage in Kaluthara'
-          },
-          axisY: {
-            interval: 10,
-            suffix: '%'
-          },
-          toolTip: {
-            shared: true
-          },
-          data: [{
-            type: 'stackedBar100',
-            toolTipContent: '{label}<br><b>{name}:</b> {y} (#percent%)',
-            showInLegend: true,
-            name: 'SLPFA',
-            color: '#ff4444',
-            dataPoints: slpfa
-          }, {
-            type: 'stackedBar100',
-            toolTipContent: '<b>{name}:</b> {y} (#percent%)',
-            showInLegend: true,
-            name: 'UNP',
-            color: 'green',
-            dataPoints: unp
-          }, {
-            type: 'stackedBar100',
-            toolTipContent: '<b>{name}:</b> {y} (#percent%)',
-            showInLegend: true,
-            name: 'Others',
-            color: 'lightblue',
-            dataPoints: other
-          }]
-        })
-        chart.render()
+          if (data.docs[dataItem].data().party === 'slpfa') {
+            slpfaCount += data.docs[dataItem].data().votes.length
+          } else if (data.docs[dataItem].data().party === 'unp') {
+            unpCount += data.docs[dataItem].data().votes.length
+          } else if (data.docs[dataItem].data().party === 'jvp') {
+            jvpCount += data.docs[dataItem].data().votes.length
+          } else {
+            otherCount += data.docs[dataItem].data().votes.length
+          }
+        }
+        console.log('voteCandidateData', voteCandidateData)
         // Draw map
         var mymap = L.map('mapid', {
           center: [8.1662979, 80.968543],
@@ -119,9 +126,71 @@
           } else if (doc.data().party === 'unp') {
             colorFill = 'green'
           }
-          L.circle([doc.data().latitude, doc.data().longitude], 1, {color: colorFill, weight: 8, fillColor: colorFill, opacity: 0.5})
-            .addTo(mymap).bindPopup('<b>' + doc.data().name + '</b><br />' + doc.data().party)
+          console.log(doc.data())
+          var popupString = '<b>' + doc.data().name + '</b><br />' + doc.data().party.toUpperCase()
+          if (doc.data().votes.length > 0) {
+            popupString += '<br/>Vote 1: ' + doc.data().votes[0]
+          }
+          if (doc.data().votes.length > 1) {
+            popupString += '<br/>Vote 2: ' + doc.data().votes[1]
+          }
+          if (doc.data().votes.length > 2) {
+            popupString += '<br/>Vote 3: ' + doc.data().votes[2]
+          }
+          L.circle([doc.data().latitude, doc.data().longitude], 1, {color: colorFill, weight: 8, fillColor: colorFill, opacity: 0.7})
+            .addTo(mymap).bindPopup(popupString)
         })
+        // All vote pie chart
+        CanvasJS.addColorSet('greenShades',
+          [
+            slpfaColor,
+            unpColor,
+            '#ff0303',
+            otherColor
+          ])
+        var allVotePieChart = new CanvasJS.Chart('allVotePieChart',
+          {
+            colorSet: 'greenShades',
+            title: {
+              text: 'Overall result'
+            },
+            legend: {
+              maxWidth: 350,
+              itemWidth: 120
+            },
+            data: [
+              {
+                type: 'pie',
+                showInLegend: true,
+                legendText: '{indexLabel}',
+                dataPoints: [
+                  { y: slpfaCount, indexLabel: 'SLPFA' },
+                  { y: unpCount, indexLabel: 'UNP' },
+                  { y: jvpCount, indexLabel: 'JVP' },
+                  // eslint-disable-next-line standard/object-curly-even-spacing
+                  { y: otherCount, indexLabel: 'Others'}
+                ]
+              }
+            ]
+          })
+        allVotePieChart.render()
+        // Add Candidate bar chart
+        var chart = new CanvasJS.Chart('allVoteCandidateBarChart', {
+          title: {
+            text: 'Candidate votes'
+          },
+          data: [
+            {
+              type: 'bar',
+              dataPoints: voteCandidateData
+            }
+          ]
+        })
+
+// Sort the dataPoints in acending order by y values so that the longest bar moves to the top
+        // this.sortDps(chart.options.data[0].dataPoints)
+
+        chart.render()
       },
       getCountForParty: function getCountForParty (array, match) {
         for (var i = 0; i < array.length; i++) {
