@@ -193,7 +193,6 @@
           [
             slpfaColor,
             unpColor,
-            '#ff0303',
             otherColor
           ])
         var allVotePieChart = new CanvasJS.Chart('allVotePieChart',
