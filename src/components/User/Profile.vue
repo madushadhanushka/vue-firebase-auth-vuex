@@ -225,6 +225,11 @@
           title: {
             text: 'Candidate votes'
           },
+          axisX: {
+            interval: 1,
+            labelMaxWidth: 100,
+            labelFontSize: 10
+          },
           data: [
             {
               type: 'bar',
