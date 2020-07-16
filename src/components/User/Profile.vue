@@ -42,6 +42,8 @@
   var unpColor = '#08ff06'
   var otherColor = '#cbcbff'
   var mymap
+  var satelliteLayre
+  var divisionLayerGroup
   export default {
     computed: {
       user () {
@@ -62,6 +64,21 @@
           }
         }
         while (swap)
+      },
+      handleSatelliteView () {
+        if (document.getElementById('satelliteView').checked === true) {
+          mymap.addLayer(satelliteLayre)
+        } else {
+          mymap.removeLayer(satelliteLayre)
+        }
+      },
+      handleDivisionView () {
+        console.log('ldsjf' + document.getElementById('divisionView').checked)
+        if (document.getElementById('divisionView').checked === true) {
+          mymap.addLayer(divisionLayerGroup)
+        } else {
+          mymap.removeLayer(divisionLayerGroup)
+        }
       },
       changeDSCode: async function changeDSCode (choice) {
         var db = firebase.firestore()
@@ -151,6 +168,22 @@
             'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
           id: 'mapbox.streets'
         }).addTo(mymap)
+        satelliteLayre = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+          maxZoom: 20,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        }).addTo(mymap)
+        var command = L.control({position: 'topright'})
+        command.onAdd = function (map) {
+          var div = L.DomUtil.create('div', 'satelliteView')
+          div.innerHTML = '<form style="background-color: white;width: 108px">' +
+            '<input id="satelliteView" type="checkbox" style="margin: 5px" checked>Satellite View' +
+            '<input id="divisionView" type="checkbox" style="margin: 5px" checked>Division View</form>'
+          return div
+        }
+        command.addTo(mymap)
+        mymap.createPane('locationMarker')
+        mymap.getPane('locationMarker').style.zIndex = 500
+        document.getElementById('satelliteView').addEventListener('click', this.handleSatelliteView, false)
         data.forEach(doc => {
           var colorFill
           if (doc.data().party === 'slpfa') {
@@ -168,25 +201,26 @@
           if (doc.data().votes.length > 2) {
             popupString += '<br/>Vote 3: ' + doc.data().votes[2]
           }
-          L.circle([doc.data().latitude, doc.data().longitude], 1, {color: colorFill, weight: 8, fillColor: colorFill, opacity: 0.7})
-            .addTo(mymap).bindPopup(popupString)
+          var point = L.circle([doc.data().latitude, doc.data().longitude], 1, {color: colorFill, weight: 8, fillColor: colorFill, opacity: 0.7, pane: 'locationMarker'})
+          point.addTo(mymap).bindPopup(popupString).bringToFront()
         })
         var filteredGNList = gnList
-        console.log('filtersli1', filteredGNList)
         if (dsCode !== 0) {
           filteredGNList = this.filterGNList(gnList, dsCode)
         }
-        console.log('filtersli', filteredGNList)
+        divisionLayerGroup = L.layerGroup()
         for (var polygonCoordinate in filteredGNList) {
           data = filteredGNList[polygonCoordinate].boundary_detail.coordinates
           var polygonData = {
             type: 'Polygon',
             coordinates: data
           }
-          var layer2 = L.geoJSON(polygonData)
-          layer2.setStyle({ weight: '1', opacity: 0.5 }).bindPopup(filteredGNList[polygonCoordinate].gnd_name)
-          mymap.addLayer(layer2)
+          var divisionLayer = L.geoJSON(polygonData)
+          divisionLayer.setStyle({ weight: '1', opacity: 0.5 }).bindPopup(filteredGNList[polygonCoordinate].gnd_name)
+          divisionLayerGroup.addLayer(divisionLayer)
+          document.getElementById('divisionView').addEventListener('click', this.handleDivisionView, false)
         }
+        divisionLayerGroup.addTo(mymap)
 
         // All vote pie chart
         CanvasJS.addColorSet('greenShades',
