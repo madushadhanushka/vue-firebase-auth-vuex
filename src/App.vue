@@ -70,7 +70,8 @@
         ]
         if (this.userIsAuthenticated) {
           menuItems = [
-            {icon: 'person', title: 'Profile', link: '/profile'}
+            {icon: 'dashboard', title: 'Dashboard', link: '/dashboard'},
+            {icon: 'person', title: 'Users', link: '/users'}
           ]
         }
         return menuItems
