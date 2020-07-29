@@ -10,6 +10,7 @@
       <td class="text-xs-left">{{ props.item.nic }}</td>
       <td class="text-xs-left">{{ props.item.ds }}</td>
       <td class="text-xs-left">{{ props.item.gn }}</td>
+      <td class="text-xs-left">{{ props.item.voteCount }}</td>
     </template></v-data-table>
   </v-container>
 </template>
@@ -27,7 +28,8 @@ export default {
         },
         { text: 'NIC', value: 'nic' },
         { text: 'DS', value: 'ds' },
-        { text: 'GN', value: 'gn' }
+        { text: 'GN', value: 'gn' },
+        { text: 'Vote Count', value: 'voteCount' }
       ],
       userList: []
     }
@@ -35,13 +37,27 @@ export default {
   mounted: async function mounted () {
     var db = firebase.firestore()
     const userRef = db.collection('users')
-    var dataRef = await userRef.get()
-    for (var userIndex in dataRef.docs) {
+    const votesRef = db.collection('votes')
+    var voteDataRef = await votesRef.get()
+    var userDataRef = await userRef.get()
+    var user = []
+    for (var userVoteIndex in userDataRef.docs) {
+      user.push(userDataRef.docs[userVoteIndex].data())
+      user[userVoteIndex].voteCount = 0
+      for (var voteIndex in voteDataRef.docs) {
+        if (userDataRef.docs[userVoteIndex].data().nic === voteDataRef.docs[voteIndex].data().nic) {
+          user[userVoteIndex].voteCount++
+        }
+      }
+    }
+    console.log(user)
+    for (var userIndex in user) {
       this.userList.push({
-        name: dataRef.docs[userIndex].data().name,
-        nic: dataRef.docs[userIndex].data().nic,
-        ds: dataRef.docs[userIndex].data().ds.dsName,
-        gn: dataRef.docs[userIndex].data().gn.gnName
+        name: user[userIndex].name,
+        nic: user[userIndex].nic,
+        ds: user[userIndex].ds.dsName,
+        gn: user[userIndex].gn.gnName,
+        voteCount: user[userIndex].voteCount
       })
     }
   },

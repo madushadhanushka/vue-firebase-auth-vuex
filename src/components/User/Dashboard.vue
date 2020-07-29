@@ -13,7 +13,7 @@
             </v-avatar>
               <h5 class="headline mb-0"><b class="red--text">Email :</b> {{ user.email }}</h5>
               <v-select
-                :items="['All', 'Kalutara', 'Beruwala', 'Panadura', 'Mathugama','Bandaragama', 'Horana', 'Ingiriya', 'Walallavita', 'Agalawatta', 'Bulathsinhala', 'Dodangoda', 'Madurawala', 'Palindanuwara', 'Millaniya']"
+                :items="['All', 'Beruwala', 'Kalutara', 'Agalawatta', 'Horana', 'Bandaragama', 'Panadura', 'Mathugama', 'Bulathsinhala']"
                 label="Select District Secretariat Division"
                 v-on:change="changeDSCode"
                 solo
@@ -85,31 +85,35 @@
         const cityRef = db.collection('votes')
         var dataRef = await cityRef.get()
         switch (choice) {
-          case 'All': this.resetAndFillMaps(dataRef.docs, [6.5854, 80.1077], 11, 0); break
-          case 'Kalutara': this.resetAndFillMaps(this.filterWith(dataRef, '21'), [6.589834, 79.96317], 12, 1321); break
-          case 'Beruwala': this.resetAndFillMaps(this.filterWith(dataRef, '24'), [6.49310, 80.0222], 12, 1324); break
-          case 'Panadura': this.resetAndFillMaps(this.filterWith(dataRef, '03'), [6.733761, 79.93200], 12, 1303); break
-          case 'Mathugama': this.resetAndFillMaps(this.filterWith(dataRef, '30'), [6.487791, 80.11434], 12, 1330); break
-          case 'Bandaragama': this.resetAndFillMaps(this.filterWith(dataRef, '06'), [6.72348, 79.9851], 13, 1306); break
-          case 'Horana': this.resetAndFillMaps(this.filterWith(dataRef, '09'), [6.753325, 80.06226], 13, 1309); break
-          case 'Ingiriya': this.resetAndFillMaps(this.filterWith(dataRef, '10'), [6.763266, 80.17232], 13, 1310); break
-          case 'Walallavita': this.resetAndFillMaps(this.filterWith(dataRef, '39'), [6.423396, 80.20112], 12, 1339); break
-          case 'Bulathsinhala': this.resetAndFillMaps(this.filterWith(dataRef, '12'), [6.656049, 80.17837], 12, 1312); break
-          case 'Dodangoda': this.resetAndFillMaps(this.filterWith(dataRef, '27'), [6.56205, 80.05187], 12, 1327); break
-          case 'Madurawala': this.resetAndFillMaps(this.filterWith(dataRef, '15'), [6.659044, 80.09365], 12, 1315); break
-          case 'Palindanuwara': this.resetAndFillMaps(this.filterWith(dataRef, '36'), [6.505204, 80.27508], 12, 1336); break
-          case 'Millaniya': this.resetAndFillMaps(this.filterWith(dataRef, '18'), [6.65033, 80.0329], 12, 1318); break
+          case 'All': this.resetAndFillMaps(dataRef.docs, [6.5854, 80.1077], 11, 0, 0); break
+          case 'Kalutara': this.resetAndFillMaps(this.filterWith(dataRef, ['21']), [6.589834, 79.96317], 12, 1321, 2); break
+          case 'Beruwala': this.resetAndFillMaps(this.filterWith(dataRef, ['24']), [6.49310, 80.0222], 12, 1324, 1); break
+          case 'Panadura': this.resetAndFillMaps(this.filterWith(dataRef, ['03']), [6.733761, 79.93200], 12, 1303, 6); break
+          case 'Mathugama': this.resetAndFillMaps(this.filterWith(dataRef, ['30', '27']), [6.487791, 80.11434], 12, 1330, 7); break
+          case 'Bandaragama': this.resetAndFillMaps(this.filterWith(dataRef, ['06', '18']), [6.72348, 79.9851], 13, 1306, 5); break
+          case 'Horana': this.resetAndFillMaps(this.filterWith(dataRef, ['09', '10']), [6.753325, 80.06226], 13, 1309, 4); break
+          case 'Agalawatta': this.resetAndFillMaps(this.filterWith(dataRef, ['03', '39', '36']), [6.4508063, 80.213525], 11, 1333, 3); break
+          case 'Bulathsinhala': this.resetAndFillMaps(this.filterWith(dataRef, ['12', '15']), [6.656049, 80.17837], 12, 1312, 8); break
         }
       },
       filterWith: function filterWith (dataRef, dsCode) {
         var filteredVotes = dataRef.docs.filter(function (arrayItem) {
-          return arrayItem.data().ds.dsCode === dsCode
+          if (dsCode === 0) {
+            return true
+          }
+          if (dsCode.length === 1) {
+            return arrayItem.data().ds.dsCode === dsCode[0]
+          } else if (dsCode.length === 2) {
+            return arrayItem.data().ds.dsCode === dsCode[0] || arrayItem.data().ds.dsCode === dsCode[1]
+          } else if (dsCode.length === 3) {
+            return arrayItem.data().ds.dsCode === dsCode[0] || arrayItem.data().ds.dsCode === dsCode[1] || arrayItem.data().ds.dsCode === dsCode[2]
+          }
         })
         return filteredVotes
       },
-      filterGNList: function filterGNList (gnList, dsCode) {
+      filterGNList: function filterGNList (gnList, electorateCode) {
         return gnList.filter(function (gnItems) {
-          return gnItems.ds_division_code === dsCode
+          return gnItems.electorateCode === electorateCode
         })
       },
       drawMaps: async function drawMaps () {
@@ -118,11 +122,11 @@
         var dataRef = await cityRef.get()
         this.fillMaps(dataRef.docs, [6.5854, 80.1077], 11, 0)
       },
-      resetAndFillMaps: function resetAndFillMaps (data, mapCenter, zoomLevel, dsCode) {
+      resetAndFillMaps: function resetAndFillMaps (data, mapCenter, zoomLevel, dsCode, electorateCode) {
         mymap.remove()
-        this.fillMaps(data, mapCenter, zoomLevel, dsCode)
+        this.fillMaps(data, mapCenter, zoomLevel, dsCode, electorateCode)
       },
-      fillMaps: async function fillMaps (data, mapCenter, zoomLevel, dsCode) {
+      fillMaps: async function fillMaps (data, mapCenter, zoomLevel, dsCode, electorateCode) {
         var slpfaCount = 0
         var unpCount = 0
         var otherCount = 0
@@ -206,7 +210,7 @@
         })
         var filteredGNList = gnList
         if (dsCode !== 0) {
-          filteredGNList = this.filterGNList(gnList, dsCode)
+          filteredGNList = this.filterGNList(gnList, electorateCode)
         }
         divisionLayerGroup = L.layerGroup()
         for (var polygonCoordinate in filteredGNList) {
